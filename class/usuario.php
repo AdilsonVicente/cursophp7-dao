@@ -42,6 +42,11 @@ class  Usuario {
         return $this;
     }
 
+    public function __construct($nome = "", $sobrenome = "") {
+        $this->setNome($nome);
+        $this->setSobrenome($sobrenome);
+    }
+
     public function loadById($id) {
         $sql = new Sql();
 
@@ -50,11 +55,8 @@ class  Usuario {
         ));
 
         if (count($result) > 0) {
-            $row = $result[0];
 
-            $this->setIdusuario($row['idusuario']);
-            $this->setNome($row['nome']);
-            $this->setSobrenome($row['sobrenome']);
+            $this->setData($result[0]);
         }
     }
 
@@ -65,6 +67,53 @@ class  Usuario {
             "sobrenome"=>$this->getSobrenome()
         ));
     }
+
+    public static function getLista() {
+        $sql = new Sql();
+
+        return $sql->select("SELECT * FROM tb_usuario ORDER BY idusuario");
+    }
+
+    public static function search($sobrenome) {
+        $sql = new Sql();
+
+        return $sql->select("SELECT * FROM tb_usuario WHERE nome LIKE :SEARCH ORDER BY nome", array(
+            ':SEARCH'=>"%".$sobrenome."%"
+        ));
+    }
+
+    public function insert() {
+        $sql = new Sql();
+
+        $result = $sql->select("CALL sp_usuario_insert(:NOME, :SOBRENOME)", array(
+            ':NOME'=>$this->getNome(),
+            ':SOBRENOME'=>$this->getSobrenome()
+        ));
+
+        if (count($result) > 0) {
+            $this->setData($result[0]);
+        }
+    }
+
+    public function setData($data) {
+        $this->setIdusuario($data['idusuario']);
+        $this->setNome($data['nome']);
+        $this->setSobrenome($data['sobrenome']);
+    }
+
+    public function update($nome, $sobrenome) {
+        $this->setNome($nome);
+        $this->setSobrenome($sobrenome);
+
+        $sql = new Sql();
+
+        $sql->query("UPDATE tb_usuario SET nome = :NOME, sobrenome = :SOBRENOME WHERE idusuario = :ID", array(
+            ':NOME'=>$this->getNome(),
+            ':SOBRENOME'=>$this->getSobrenome(),
+            ':ID'=>$this->getIdusuario()
+        ));
+    }
+
 }
 
 
